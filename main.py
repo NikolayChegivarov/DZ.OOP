@@ -3,9 +3,10 @@ class Student:
         self.name = name
         self.surname = surname
         self.gender = gender
-        self.finished_courses = []  # законченные курсы
-        self.courses_in_progress = []  # курсы в процессе
+        self.finished_courses = [] # законченные курсы
+        self.courses_in_progress = [] # курсы в процессе
         self.grades = {}
+
     def rate_hw(self, lecturer, course, grade):
         if isinstance(lecturer, Lecturer) and course in lecturer.courses_attached and course in self.courses_in_progress:
             if course in lecturer.grades:
@@ -15,11 +16,33 @@ class Student:
         else:
             return 'Ошибка'
 
+    def average(self):
+        result = 0.0
+        list_ratings = []
+        for value in self.grades.values():
+          list_ratings.extend(value)
+          if len(list_ratings) == 0:
+              result = 0
+          else:
+              result = sum(list_ratings) / len(list_ratings)
+        return result
+
+    def __str__(self):
+        return f'Имя: {self.name} \nФамилия: {self.surname} \nСредняя оценка за домашние задания: {self.average()} \nКурсы в процессе изучения: {", ".join(self.courses_in_progress)} \nЗавершенные курсы: {", ".join(self.finished_courses)}'
+
+    def __lt__(self, student):
+        return self.average() < student.average()
+
+    def __gt__(self, student):
+        return self.average() > student.average()
+
 class Mentor:
     def __init__(self, name, surname):
         self.name = name
         self.surname = surname
-        self.courses_attached = []  # закрепленные за преподователем курсы
+        self.courses_attached = [] # закрепленные за преподователем курсы
+    def __str__(self):  # надо же попробовать
+        return f'{self.name} {self.surname}'
 
 class Lecturer(Mentor):
     def __init__(self, name, surname):
@@ -27,32 +50,73 @@ class Lecturer(Mentor):
         self.surname = surname
         self.courses_attached = []
         self.grades = {}
-    def __str__(self):   # надо же попробовать
-        return f'{self.name} {self.surname}'
+
+    def average(self):
+        list_ratings = []
+        result = 0.0
+        for value in self.grades.values():
+          list_ratings.extend(value)
+          if len(list_ratings) == 0:
+              result = 0
+          else:
+              result = sum(list_ratings) / len(list_ratings)
+        return f'{result }'
+
+    def __str__(self):
+        return f'Имя: {self.name} \nФамилия: {self.surname} \nСредняя оценка за лекции: {one_lecturer.average()}'
 
 class Reviewer(Mentor):
     def rate_hw(self, student, course, grade):
         if isinstance(student, Student) and course in self.courses_attached and course in student.courses_in_progress:
-            if course in student.grades:  # если курс есть в (в ключе) оценках студента?
-                student.grades[course] += [grade]  # то к нему добавляем оценку
-            else:                        # ксли курса нет,
-                student.grades[course] = [grade]   # то заводим его в ключ и первую оценку в значение
+            if course in student.grades:
+                student.grades[course] += [grade]
+            else:
+                student.grades[course] = [grade]
         else:
-            return
+            return 'Ошибка'
 
-one_lecturer = Lecturer('Алексей', 'Панин') # создаю лектора
-one_lecturer.courses_attached += ['anatomy']  # закрепляю за лектором курс
+    def __str__(self):
+        return f'Имя: {self.name} \nФамилия: {self.surname}'
 
-best_student = Student('Иван', 'Алексеевич', 'пацан') # создаю студента
-best_student.courses_in_progress += ['knitting'] # студент проходит следующие курсы
-best_student.courses_in_progress += ['anatomy']
-best_student.rate_hw(one_lecturer, 'anatomy', 2) # студент выставляет оценки лектору
+one_lecturer = Lecturer('Алексей', 'Панин')     # создаю лектора
+two_lecturer = Lecturer('Вася', 'Степочкин')    # второй лектор
+one_lecturer.courses_attached += ['anatomy']    # закрепляю за лектором курсы
+one_lecturer.courses_attached += ['biology']
+two_lecturer.courses_attached += ['biology']
+
+best_student = Student('Иван', 'Царевич', 'пацан')       # создаю студента
+woman_student = Student('Василиса', 'Премудрая', 'дева') # второй студент
+best_student.courses_in_progress += ['anatomy']          # студенты проходят следующие курсы
+best_student.courses_in_progress += ['biology']
+best_student.courses_in_progress += ['parallel_drawing']
+woman_student.courses_in_progress += ['anatomy']
+best_student.finished_courses += ['python']
+best_student.rate_hw(one_lecturer, 'anatomy', 2)         # студенты выставляют оценки лектору
 best_student.rate_hw(one_lecturer, 'anatomy', 3)
-best_student.rate_hw(one_lecturer, 'anatomy', 2)
+best_student.rate_hw(one_lecturer, 'biology', 3)
+best_student.rate_hw(one_lecturer, 'biology', 4)
+woman_student.rate_hw(one_lecturer, 'anatomy', 5)
 
-cool_mentor = Mentor('Антонина', 'Эдуардовна')   # создаю студента
-cool_mentor.courses_attached += ['knitting']   # закрепляю за ментором курс
+cool_mentor = Mentor('Антонина', 'Эдуардовна')  # создаю ментора
+super_cool_mentor = Mentor('Альберт', 'Энштейн')      # второй ментор
+cool_mentor.courses_attached += ['knitting']    # закрепляю за ментором курс
 
-print(f'Итого, у нас есть студент {best_student.name} {best_student.surname}, {best_student.gender} по жизни, который учится на курсах {", ".join(best_student.courses_in_progress)}')
-print(f'Так же у нас есть лектор {one_lecturer}. Он преподает {", ".join(one_lecturer.courses_attached)}. Оценки лектора: {one_lecturer.grades}. ')
-print(f'Ну и конечно ментор {cool_mentor.name} {cool_mentor.surname}. Она преподает {", ".join(cool_mentor.courses_attached)}')
+some_reviewer = Reviewer('Аграфена', 'Рудольфовна')     # создаю Reviewer
+which_reviewer = Reviewer('Джек', 'Воробей')            # второй Reviewer
+some_reviewer.courses_attached += ['parallel_drawing']  # закрепляю за ревьювером курс
+some_reviewer.rate_hw(best_student, 'parallel_drawing', 4)
+some_reviewer.rate_hw(best_student, 'anatomy', 4)
+some_reviewer.rate_hw(woman_student, 'anatomy', 5)
+print()
+print(best_student > woman_student)
+print(best_student < woman_student)
+print()
+
+# print(f'Итого, у нас есть студент {best_student.name} {best_student.surname}, {best_student.gender} по жизни, который учится на курсах {", ".join(best_student.courses_in_progress)}.')
+# print(f'Так же у нас есть лектор {one_lecturer.name} {one_lecturer.surname}. Он преподает {", ".join(one_lecturer.courses_attached)}. Оценки лектора: {one_lecturer.grades}. ')
+# print(f'Ну и конечно ментор {cool_mentor.name} {cool_mentor.surname}. Она преподает {", ".join(cool_mentor.courses_attached)}.')
+print(some_reviewer)
+print()
+print(one_lecturer)
+print()
+print(best_student)
